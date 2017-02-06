@@ -90,7 +90,7 @@ class PoloniexBase:
         body = FileBodyProducer(BytesIO(args))
 
         sign = hmac.new(
-            self.secret,
+            self.secret.encode('utf-8'),
             args,
             sha512
         )

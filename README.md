@@ -13,7 +13,7 @@ from twisted.internet import task
 
 from txpoloniex import Poloniex
 
-p = Poloniex(api_key='', secret=b'')
+p = Poloniex(api_key='', secret='')
 
 def balances(reactor):
     d = p.availableAccountBalances()
