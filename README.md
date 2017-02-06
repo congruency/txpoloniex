@@ -31,5 +31,7 @@ task.react(balances)
 # Donate
 
 BTC: 12BBRhcyZtzSYQ45pvuyWBsDjM9hmxNLrY
+
 ETH: 0x32320d939c9f715f9edb9ec725b013b551dc6ebd
+
 ZEC: t1c5dxfN8L3EfUFSGn4zLBBLByvLwi5gQiR
