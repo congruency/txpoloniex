@@ -4,7 +4,7 @@ Twisted wrapper for the Poloniex API
 - **code**: https://github.com/congruency/txpoloniex
 - Apache License 2.0
 - Tested with Python 3.5.2
-- depends on `Twisted <https://twistedmatrix.com>`_
+- depends on `Twisted 16.6 <https://twistedmatrix.com>`_
 
 Introduction
 ------------
@@ -21,6 +21,7 @@ Example use
 -----------
 
 .. sourcecode:: python
+
     from twisted.internet import task
 
     from txpoloniex import Poloniex
@@ -35,6 +36,7 @@ Example use
     task.react(balances)
 
 .. code-block:: shell-session
+
     % python3 examples/balance.py
     {'exchange': {'ZEC': '0.00199121', 'ETH': '4.00199121', 'BTC': '0.79774165'}}
 
