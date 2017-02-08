@@ -44,6 +44,5 @@ class Poloniex(base.PoloniexBase, queue.RateLimitMixin):
         """
         for endpoint in endpoints:
             name = util.format_function(endpoint)
-            self.log.trace('Adding {name} handler', name=name)
             func = partial(self.addQueue, handler, endpoint)
             setattr(self, name, func)

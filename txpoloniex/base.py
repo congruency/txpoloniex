@@ -5,14 +5,11 @@ from io import BytesIO
 from time import time
 from urllib.parse import urlencode
 
-import txaio
-
+from twisted.logger import Logger
 from twisted.internet import reactor
 from twisted.web.client import Agent, HTTPConnectionPool, readBody, \
      FileBodyProducer, ContentDecoderAgent, GzipDecoder
 from twisted.web.http_headers import Headers
-
-txaio.use_twisted()
 
 PUBLIC_API = 'https://poloniex.com/public'
 TRADING_API = 'https://poloniex.com/tradingApi'
@@ -34,7 +31,8 @@ def to_json(func):
     return read_and_decode
 
 class PoloniexBase:
-    log = txaio.make_logger()
+    log = Logger()
+
     pool = HTTPConnectionPool(reactor)
     agent = ContentDecoderAgent(
         Agent(reactor, pool=pool),
