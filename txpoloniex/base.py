@@ -33,9 +33,16 @@ def to_json(func):
 class PoloniexBase:
     log = Logger()
 
+    connectTimeout = 1.0
+
     pool = HTTPConnectionPool(reactor)
+
     agent = ContentDecoderAgent(
-        Agent(reactor, pool=pool),
+        Agent(
+            reactor,
+            connectTimeout=connectTimeout,
+            pool=pool
+        ),
         [(b'gzip', GzipDecoder)],
     )
 
