@@ -11,24 +11,7 @@ from twisted.web.client import Agent, HTTPConnectionPool, readBody, \
      FileBodyProducer, ContentDecoderAgent, GzipDecoder
 from twisted.web.http_headers import Headers
 
-PUBLIC_API = 'https://poloniex.com/public'
-TRADING_API = 'https://poloniex.com/tradingApi'
-
-def to_json(func):
-    def read_and_decode(*args, **kwargs):
-        d = func(*args, **kwargs)
-
-        d.addCallback(readBody)
-
-        def decode(body):
-            body = body.decode('utf-8')
-            return json.loads(body)
-
-        d.addCallback(decode)
-
-        return d
-
-    return read_and_decode
+from txpoloniex import const, util
 
 class PoloniexBase:
     log = Logger()
@@ -52,7 +35,7 @@ class PoloniexBase:
 
         self.nonce = int(time() * 1000)
 
-    @to_json
+    @util.to_json
     def requestPublic(self, command, **kwargs):
         """
         Submit a request to the public endpoint
@@ -64,7 +47,7 @@ class PoloniexBase:
 
         args = urlencode(kwargs)
 
-        url = '{uri}?{args}'.format(uri=PUBLIC_API, args=args)
+        url = '{uri}?{args}'.format(uri=const.PUBLIC_API, args=args)
 
         d = self.agent.request(
             method.encode('utf-8'),
@@ -73,7 +56,7 @@ class PoloniexBase:
 
         return d
 
-    @to_json
+    @util.to_json
     def requestPrivate(self, command, **kwargs):
         """
         Submit a request to the private, authenticated, endpoint
@@ -88,7 +71,7 @@ class PoloniexBase:
 
         method = 'POST'
 
-        url = TRADING_API
+        url = const.PRIVATE_API
 
         args = urlencode(kwargs).encode('utf-8')
 

@@ -1,8 +1,11 @@
 """
-List of public and private commands accepted by the poloniex API
+Constant values for the Poloniex API
 """
 
-PUBLIC = [
+PUBLIC_API = 'https://poloniex.com/public'
+PRIVATE_API = 'https://poloniex.com/tradingApi'
+
+PUBLIC_COMMANDS = [
     'returnTicker',
     'return24hVolume',
     'returnOrderBook',
@@ -12,7 +15,7 @@ PUBLIC = [
     'returnLoanOrders',
 ]
 
-PRIVATE = [
+PRIVATE_COMMANDS = [
     'returnBalances',
     'returnCompleteBalances',
     'returnDepositAddresses',

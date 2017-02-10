@@ -1,6 +1,6 @@
 from functools import partial
 
-from txpoloniex import base, commands, queue, util
+from txpoloniex import base, const, queue, util
 
 class ConfigError(Exception):
     def __init__(self, api_key, secret):
@@ -28,15 +28,16 @@ class Poloniex(base.PoloniexBase, queue.RateLimitMixin):
         base.PoloniexBase.__init__(self, api_key, secret)
 
         self.setLimit(self.MAX_REQS_PER_SECOND)
-        self.addHandler(self.requestPublic, commands.PUBLIC)
+
+        self.addHandler(self.requestPublic, const.PUBLIC_COMMANDS)
 
         def error(*args, **kwargs):
             raise ConfigError(api_key, secret)
 
         if not api_key or not secret:
-            self.addHandler(error, commands.PRIVATE)
+            self.addHandler(error, const.PRIVATE_COMMANDS)
         else:
-            self.addHandler(self.requestPrivate, commands.PRIVATE)
+            self.addHandler(self.requestPrivate, const.PRIVATE_COMMANDS)
 
     def addHandler(self, handler, endpoints):
         """
