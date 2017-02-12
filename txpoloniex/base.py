@@ -13,12 +13,15 @@ from twisted.web.http_headers import Headers
 
 from txpoloniex import const, util
 
+class SingleHTTPConnectionPool(HTTPConnectionPool):
+    maxPersistentPerHost = 1
+
 class PoloniexBase:
     log = Logger()
 
     connectTimeout = 1.0
 
-    pool = HTTPConnectionPool(reactor)
+    pool = SingleHTTPConnectionPool(reactor)
 
     agent = ContentDecoderAgent(
         Agent(
