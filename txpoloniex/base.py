@@ -6,22 +6,19 @@ from time import time
 from urllib.parse import urlencode
 
 from twisted.logger import Logger
-from twisted.internet import reactor
+from twisted.internet import reactor, defer
 from twisted.web.client import Agent, HTTPConnectionPool, readBody, \
      FileBodyProducer, ContentDecoderAgent, GzipDecoder
 from twisted.web.http_headers import Headers
 
 from txpoloniex import const, util
 
-class SingleHTTPConnectionPool(HTTPConnectionPool):
-    maxPersistentPerHost = 1
-
 class PoloniexBase:
     log = Logger()
 
     connectTimeout = 1.0
 
-    pool = SingleHTTPConnectionPool(reactor)
+    pool = HTTPConnectionPool(reactor)
 
     agent = ContentDecoderAgent(
         Agent(
@@ -31,6 +28,8 @@ class PoloniexBase:
         ),
         [(b'gzip', GzipDecoder)],
     )
+
+    lock = defer.DeferredLock()
 
     def __init__(self, api_key, secret):
         self.api_key = api_key
@@ -52,7 +51,7 @@ class PoloniexBase:
 
         url = '{uri}?{args}'.format(uri=const.PUBLIC_API, args=args)
 
-        d = self.agent.request(
+        d = self.lock.run(self.agent.request,
             method.encode('utf-8'),
             url.encode('utf-8'),
         )
@@ -92,7 +91,7 @@ class PoloniexBase:
             'Content-Type': ['application/x-www-form-urlencoded'],
         }
 
-        d = self.agent.request(
+        d = self.lock.run(self.agent.request,
             method.encode('utf-8'),
             url.encode('utf-8'),
             Headers(headers),
