@@ -11,7 +11,6 @@ from txpoloniex import Poloniex
 getcontext().prec = 8
 #getcontext().rounding = ROUND_FLOOR
 
-MAKER_FEE = Decimal(0.0015)
 TAKER_FEE = Decimal(0.0025)
 
 def intertradeable(pairs):
@@ -81,7 +80,7 @@ def calculate_profit(route, orderbook, pairs):
 
         if pair in pairs: # BUY
             price = price_for(pair, 'asks')
-            amount = amount / Decimal(price) * (1 - MAKER_FEE)
+            amount = amount / Decimal(price) * (1 - TAKER_FEE)
 
         else: # SELL
             pair = (secondary, primary)
