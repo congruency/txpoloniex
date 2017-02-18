@@ -6,17 +6,11 @@ class RateLimitMixin:
     """
     Mixin for classes to rate limit function calls
     """
-    limit = 0
+    maxPerSecond = 0
 
     _queue = []
 
     _wait = 0.0
-
-    def setLimit(self, limit):
-        """
-        Set limit of calls per second
-        """
-        self.limit = limit
 
     def addQueue(self, func, *args, **kwargs):
         """
@@ -26,10 +20,12 @@ class RateLimitMixin:
         
         length = len(self._queue)
 
-        before_limit = length % self.limit
+        limit = self.maxPerSecond
 
-        if length and not before_limit:
-            i = length - self.limit
+        before_limit = length % limit
+
+        if limit and length and not before_limit:
+            i = length - limit
 
             distance = self._queue[-1] - self._queue[i]
 
