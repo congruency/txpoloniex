@@ -56,8 +56,6 @@ class PoloniexPrivate(PoloniexBase):
             'nonce': self.nonce,
         })
 
-        method = 'POST'
-
         url = const.PRIVATE_API
 
         args = urlencode(kwargs).encode('utf-8')
@@ -77,7 +75,7 @@ class PoloniexPrivate(PoloniexBase):
         }
 
         d = self.lock.run(self.agent.request,
-            method.encode('utf-8'),
+            b'POST',
             url.encode('utf-8'),
             Headers(headers),
             body,
@@ -95,14 +93,12 @@ class PoloniexPublic(PoloniexBase):
 
         kwargs.update({'command': command})
 
-        method = 'GET'
-
         args = urlencode(kwargs)
 
         url = '{uri}?{args}'.format(uri=const.PUBLIC_API, args=args)
 
         d = self.agent.request(
-            method.encode('utf-8'),
+            b'GET',
             url.encode('utf-8'),
         )
 
