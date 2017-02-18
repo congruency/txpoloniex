@@ -1,6 +1,6 @@
 from functools import partial
 
-from txpoloniex import base, const, queue, util
+from txpoloniex import base, const, util
 
 class Poloniex:
 
