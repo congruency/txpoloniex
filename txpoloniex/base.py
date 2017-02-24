@@ -1,4 +1,5 @@
 import hmac
+import json
 from hashlib import sha512
 from io import BytesIO
 from time import time
@@ -6,7 +7,7 @@ from urllib.parse import urlencode
 
 from twisted.logger import Logger
 from twisted.internet import reactor, defer
-from twisted.web.client import Agent, HTTPConnectionPool, \
+from twisted.web.client import Agent, HTTPConnectionPool, readBody, \
      FileBodyProducer, ContentDecoderAgent, GzipDecoder
 from twisted.web.http_headers import Headers
 
@@ -41,7 +42,7 @@ class PoloniexPrivate(PoloniexBase):
         self.secret = secret
         self.nonce = int(time() * 1000)
 
-    @util.to_json
+    @defer.inlineCallbacks
     def request(self, command, **kwargs):
         """
         Submit a request to the private, authenticated, endpoint
@@ -74,18 +75,22 @@ class PoloniexPrivate(PoloniexBase):
             'Content-Type': ['application/x-www-form-urlencoded'],
         }
 
-        d = self.lock.run(self.agent.request,
+        response = yield self.lock.run(self.agent.request,
             b'POST',
             url.encode('utf-8'),
             Headers(headers),
             body,
         )
 
-        return d
+        body = yield readBody(response)
+
+        parsed = json.loads(body.decode('utf-8'))
+
+        defer.returnValue(parsed)
 
 class PoloniexPublic(PoloniexBase):
 
-    @util.to_json
+    @defer.inlineCallbacks
     def request(self, command, **kwargs):
         """
         Submit a request to the public endpoint
@@ -97,10 +102,13 @@ class PoloniexPublic(PoloniexBase):
 
         url = '{uri}?{args}'.format(uri=const.PUBLIC_API, args=args)
 
-        d = self.agent.request(
+        response = yield self.agent.request(
             b'GET',
             url.encode('utf-8'),
         )
 
-        return d
+        body = yield readBody(response)
 
+        parsed = json.loads(body.decode('utf-8'))
+
+        defer.returnValue(parsed)
