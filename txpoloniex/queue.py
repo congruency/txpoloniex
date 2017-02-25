@@ -1,71 +1,105 @@
-from time import time
+from twisted.internet import reactor, task, defer
 
-from twisted.internet import reactor, task
-
-class RateLimitMixin:
+class RateLimit(defer.DeferredLock):
     """
     Mixin for classes to rate limit function calls
     """
-    maxPerSecond = 0
+    _times = []
 
-    _queue = []
+    _expirations = []
 
-    _wait = 0.0
+    reactor = reactor
 
-    def addQueue(self, func, *args, **kwargs):
+    def __init__(self, maxPerSecond=0):
+        self.maxPerSecond = maxPerSecond
+
+        defer.DeferredLock.__init__(self)
+
+    def _nextDelay(self):
         """
-        Add to queue
+        Returns the amount of time to delay the next call
         """
-        self.purgeOld()
-        
-        length = len(self._queue)
+
+        length = len(self._times)
 
         limit = self.maxPerSecond
 
-        before_limit = length % limit
+        remainder = length % limit
 
-        if limit and length and not before_limit:
-            i = length - limit
+        difference = 0
 
-            distance = self._queue[-1] - self._queue[i]
+        base = length // self.maxPerSecond
 
-            duration = 1.0 - distance
+        if not limit or not length or not base:
+            return 0.0
 
-            # Increase wait time by 1 second, less the time already transpired
-            self._wait += duration
+        last = self._times[-1]
 
-            # Purge the queue once the wait has expired
-            reactor.callLater(self._wait, self.deQueue, duration)
+        i = length - limit
 
-        self._queue.append(time())
+        difference = last - self._times[i]
 
-        if not self._wait:
-            return func(*args, **kwargs)
+        return 1.0 - difference
+
+    def _called(self, ignoredResult):
+        """
+        Record the time that the deferred was called
+        """
+        self._times.append(self.reactor.seconds())
+
+        # Once a second has passed, remove the recorded time
+        de = self.reactor.callLater(1.0, self._expire)
+
+        self._expirations.append(de)
+
+    def _expire(self):
+        """
+        Called to remove the time from calculations after a second has expired
+        """
+        self._times.pop(0)
+
+    def _cancel(self, d):
+        """
+        Remove d from waiting and cancel the expiration
+        """
+        i = self.waiting.index(d)
+
+        self.waiting.pop(i)
+
+        df = self._expirations.pop(i)
+
+        df.cancel()
+
+    def acquire(self):
+
+        d = defer.Deferred(canceller=self._cancel)
+
+        d.addCallback(self._called)
+
+        if self.locked:
+            self.waiting.append(d)
         else:
-            return task.deferLater(
-                reactor, self._wait,
-                func, *args, **kwargs
-            )
+            self.locked = True
+            d.callback(self)
 
-    def deQueue(self, duration):
+        return d
+
+    def release(self):
+
+        delay = self._nextDelay()
+
+        self.reactor.callLater(delay, defer.DeferredLock.release, self)
+
+    def clear(self):
         """
-        Remove from the queue
+        Cancel all pending calls and flush state
         """
-        self.purgeOld()
+        
+        for d in self.waiting:
+            self._cancel(d)
 
-        self._wait -= 1.0
+        for d in self._expirations:
+            d.cancel()
 
-    def purgeOld(self):
-        """
-        Purge old entries from queue
-        """
-        now = time()
-
-        for entry in self._queue:
-            distance = now - entry
-
-            if distance < 1.0:
-                continue
-
-            self._queue.remove(entry)
-    
+        self._times = []
+        self._expirations = []

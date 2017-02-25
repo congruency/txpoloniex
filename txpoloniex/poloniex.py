@@ -19,5 +19,5 @@ class Poloniex:
 
         for endpoint in endpoints:
             name = util.format_function(endpoint)
-            func = partial(cls.addQueue, cls.request, endpoint)
+            func = partial(cls.queue.run, cls.request, endpoint)
             setattr(self, name, func)

@@ -13,13 +13,15 @@ from twisted.web.http_headers import Headers
 
 from txpoloniex import const, util, queue
 
-class PoloniexBase(queue.RateLimitMixin):
+class PoloniexBase:
 
     log = Logger()
 
     connectTimeout = 1.0
 
     maxPerSecond = 6
+
+    queue = queue.RateLimit(maxPerSecond)
 
     pool = HTTPConnectionPool(reactor)
 
@@ -33,8 +35,6 @@ class PoloniexBase(queue.RateLimitMixin):
     )
 
 class PoloniexPrivate(PoloniexBase):
-
-    lock = defer.DeferredLock()
 
     def __init__(self, api_key, secret):
 
@@ -75,7 +75,7 @@ class PoloniexPrivate(PoloniexBase):
             'Content-Type': ['application/x-www-form-urlencoded'],
         }
 
-        response = yield self.lock.run(self.agent.request,
+        response = yield self.agent.request(
             b'POST',
             url.encode('utf-8'),
             Headers(headers),
