@@ -8,9 +8,6 @@ from twisted.internet import task
 
 from txpoloniex import Poloniex
 
-getcontext().prec = 8
-#getcontext().rounding = ROUND_FLOOR
-
 TAKER_FEE = Decimal(0.0025)
 
 def intertradeable(pairs):
